@@ -52,6 +52,9 @@ def create_app(config_class=Config):
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
 
+    from app.mission import bp as mission_bp
+    app.register_blueprint(mission_bp, url_prefix='/mission')
+
     from app.cli import bp as cli_bp
     app.register_blueprint(cli_bp)
 

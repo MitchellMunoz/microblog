@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>{{ _('Mission Checklist') }}</h1>
+  <ul class="list-group" id="mission-list">
+    {% for task in tasks %}
+    <li class="list-group-item">
+      <input type="checkbox" id="task-{{ task.id }}" {% if completed.get(task.id|string) %}checked{% endif %}>
+      <label for="task-{{ task.id }}">{{ task.text }}</label>
+    </li>
+    {% endfor %}
+  </ul>
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+      const list = document.getElementById('mission-list');
+      list.addEventListener('change', async function (e) {
+          const cb = e.target;
+          if (cb.type === 'checkbox') {
+              const id = cb.id.split('-')[1];
+              await fetch('{{ url_for('mission.update_task', task_id=0) }}'.replace('0', id), {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ completed: cb.checked })
+              });
+          }
+      });
+  });
+  </script>
+{% endblock %}
