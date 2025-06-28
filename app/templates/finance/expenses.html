@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h2>{{ _('Upload Expense Receipt') }}</h2>
+
+    {# Upload form #}
+    <form method="post" enctype="multipart/form-data">
+      <div class="mb-3">
+        <label for="file" class="form-label">{{ _('Select receipt file') }}</label>
+        <input type="file" name="file" id="file" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary">{{ _('Upload Receipt') }}</button>
+    </form>
+
+    {# Last upload info #}
+    {% if filename %}
+      <hr>
+      <p>{{ _('Last uploaded file:') }} <strong>{{ filename }}</strong></p>
+    {% endif %}
+
+    {# List all saved receipts #}
+    {% if receipts %}
+      <hr>
+      <h3>{{ _('All Uploaded Receipts') }}</h3>
+      <ul class="list-group">
+        {% for receipt in receipts %}
+          <li class="list-group-item">
+            <a href="{{ url_for('finance.uploaded_file', filename=receipt) }}">{{ receipt }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endblock %}

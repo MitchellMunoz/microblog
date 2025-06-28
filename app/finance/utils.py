@@ -1,9 +1,8 @@
 import pandas as pd
-import os
 import matplotlib.pyplot as plt
 
 # Allowed file extensions for upload
-ALLOWED_EXTENSIONS = {'csv', 'jpg', 'jpeg', 'png', 'gif', 'pdf'}
+ALLOWED_EXTENSIONS = {'csv'}
 
 def allowed_file(filename: str) -> bool:
     """

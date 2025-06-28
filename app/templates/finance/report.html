@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Report: {{ filename }}</h1>
+
+  {% if chart_url %}
+    <div class="chart-container">
+      <img src="{{ chart_url }}" alt="Monthly Donations Chart">
+    </div>
+  {% endif %}
+
+  <section>
+    <h2>Average Donation</h2>
+    <p><strong>${{ average|round(2) }}</strong></p>
+  </section>
+
+  <section>
+    <h2>Top 10 Donors</h2>
+    <ul>
+      {% for name, total in top_donors.items() %}
+        <li>{{ name }} — ${{ '%.2f'|format(total) }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section>
+    <h2>Monthly Totals</h2>
+    <table>
+      <thead>
+        <tr><th>Month</th><th>Total</th></tr>
+      </thead>
+      <tbody>
+        {% for month, total in monthly_totals.items() %}
+          <tr>
+            <td>{{ month }}</td>
+            <td>${{ '%.2f'|format(total) }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Repeat Donors</h2>
+    {% if repeat_donors %}
+      <ul>
+        {% for donor in repeat_donors %}
+          <li>{{ donor }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No repeat donors found.</p>
+    {% endif %}
+  </section>
+{% endblock %}

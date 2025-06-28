@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ _('Upload a file') }}</h1>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul class="flashes">
+        {% for msg in messages %}
+          <li>{{ msg }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+      <input class="form-control" type="file" name="file">
+    </div>
+    <button class="btn btn-primary" type="submit">{{ _('Upload') }}</button>
+  </form>
+{% endblock %}
+
