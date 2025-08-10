@@ -55,6 +55,9 @@ def create_app(config_class=Config):
     from app.mission import bp as mission_bp
     app.register_blueprint(mission_bp, url_prefix='/mission')
 
+    from app.finance.routes import bp as finance_bp
+    app.register_blueprint(finance_bp)
+
     from app.cli import bp as cli_bp
     app.register_blueprint(cli_bp)
 

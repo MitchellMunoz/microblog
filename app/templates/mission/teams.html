@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+
+    <div class="card mt-4">
+        <div class="card-body">
+            <h3>Team Management</h3>
+        </div>
+    </div>
+
+    <h2 class="mt-4">Manage Groups</h2>
+
+    <!-- Form to Add New Group -->
+    <form method="POST" action="{{ url_for('mission.add_group') }}" class="mb-4">
+        <div class="input-group">
+            <input type="text" class="form-control" name="group_name" placeholder="New group name">
+            <button class="btn btn-primary">Add Group</button>
+        </div>
+    </form>
+
+    <!-- List of Groups -->
+    <ul class="list-group">
+        {% for group in groups %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>{{ group.name }}</span>
+            <div>
+                <!-- Edit Group -->
+                <a href="{{ url_for('mission.edit_group', group_id=group.id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+
+                <!-- Delete Group -->
+                <form method="POST" action="{{ url_for('mission.delete_group', group_id=group.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+
+</div>
+{% endblock %}

@@ -9,6 +9,7 @@ class Receipt(db.Model):
     memo = db.Column(db.Text)
     category = db.Column(db.String(50), nullable=False)
     receipt_file = db.Column(db.String(255), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
         return f"<Receipt {self.id} {self.merchant} {self.amount} {self.currency}>"

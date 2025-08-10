@@ -2,18 +2,15 @@ from flask import render_template, redirect, url_for, request
 from flask_login import login_required, current_user
 from app.mission import bp
 from app import db
-from app.models import Task, Group, User
+from app.models import Task, Group
 from flask_babel import _
-from datetime import date, timedelta, datetime
-import pytz
+from datetime import date, timedelta
 
 # Receipt model import for stats
 try:
     from app.finance.models import Receipt
 except ImportError:
     Receipt = None
-
-guatemala_tz = pytz.timezone('America/Guatemala')
 
 @bp.route('/teams', methods=['GET'])
 @login_required
@@ -57,26 +54,25 @@ def checklist():
     if request.method == 'POST':
         new_task_text = request.form.get('new_task')
         if new_task_text:
-            task = Task(created_by=current_user.id, text=new_task_text)
+            task = Task(user_id=current_user.id, text=new_task_text)
             db.session.add(task)
             db.session.commit()
-        return redirect(url_for('mission.checklist'))
+            return redirect(url_for('mission.checklist'))
 
-    tasks = Task.query.order_by(Task.timestamp.desc()).all()
-
+    tasks = Task.query.filter_by(user_id=current_user.id).all()
     percent_complete = (100 * len([t for t in tasks if t.completed]) / len(tasks)) if tasks else 0
 
-    today = datetime.now(guatemala_tz).date()
+    today = date.today()
     this_week = today - timedelta(days=6)
-    tasks_this_week = sum(1 for t in tasks if t.completed and t.completion_date and t.completion_date.date() >= this_week)
+    tasks_this_week = sum(1 for t in tasks if t.completed and t.timestamp.date() >= this_week)
 
     one_year_ago = today - timedelta(days=365)
     groups_created_this_year = Group.query.filter(Group.timestamp >= one_year_ago).count()
 
     streak = 0
-    for i in range(100):
+    for i in range(0, 100):
         check_date = today - timedelta(days=i)
-        if any(t.completed and t.completion_date and t.completion_date.date() == check_date for t in tasks):
+        if any(t.completed and t.timestamp.date() == check_date for t in tasks):
             streak += 1
         else:
             break
@@ -105,19 +101,16 @@ def checklist():
 @login_required
 def toggle_task(task_id):
     task = Task.query.get_or_404(task_id)
-    if not task.completed:
-        task.complete(current_user.id)
-    else:
-        task.completed = False
-        task.completed_by = None
-        task.completion_date = None
-    db.session.commit()
+    if task.user_id == current_user.id:
+        task.completed = not task.completed
+        db.session.commit()
     return redirect(url_for('mission.checklist'))
 
 @bp.route('/checklist/<int:task_id>/delete', methods=['POST'])
 @login_required
 def delete_task(task_id):
     task = Task.query.get_or_404(task_id)
-    db.session.delete(task)
-    db.session.commit()
+    if task.user_id == current_user.id:
+        db.session.delete(task)
+        db.session.commit()
     return redirect(url_for('mission.checklist'))

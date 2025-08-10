@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Donor</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h2 class="mt-5">Add New Donor</h2>
+        <form action="{{ url_for('add_donor') }}" method="POST">
+            <div class="form-group">
+                <label for="person">Person</label>
+                <input type="text" class="form-control" id="person" name="person" required>
+            </div>
+            <div class="form-group">
+                <label for="required">Required</label>
+                <input type="text" class="form-control" id="required" name="required" required>
+            </div>
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+            <div class="form-group">
+                <label for="tasks">Tasks</label>
+                <textarea class="form-control" id="tasks" name="tasks" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="contact_type">Contact Type</label>
+                <input type="text" class="form-control" id="contact_type" name="contact_type" required>
+            </div>
+            <div class="form-group">
+                <label for="last_contacted">Last Contacted</label>
+                <input type="date" class="form-control" id="last_contacted" name="last_contacted" required>
+            </div>
+            <div class="form-group">
+                <label for="interactions">Interactions</label>
+                <textarea class="form-control" id="interactions" name="interactions" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="inactive_days">Inactive Days</label>
+                <input type="number" class="form-control" id="inactive_days" name="inactive_days" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Donor</button>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+

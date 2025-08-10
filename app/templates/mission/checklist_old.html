@@ -9,7 +9,8 @@
                 <li>Tasks completed this week: {{ stats.tasks_this_week }}</li>
                 <li>Current streak: {{ stats.current_streak }} days</li>
                 <li>Receipts uploaded: {{ stats.receipts_uploaded }}</li>
-                <li>Groups created this year: {{ stats.groups_created_this_year }}</li>
+               <li>Groups created this year: {{ stats.groups_created_this_year }}</li>
+
             </ul>
         </div>
     </div>
@@ -29,24 +30,7 @@
             <form method="POST" action="{{ url_for('mission.toggle_task', task_id=task.id) }}">
                 <input type="checkbox" onchange="this.form.submit()" {% if task.completed %}checked{% endif %}>
             </form>
-            <div class="flex-grow-1 ms-3">
-                <span {% if task.completed %}class="text-decoration-line-through"{% endif %}>
-                    {{ task.text }}
-                </span>
-                <div class="small text-muted">
-                    Created by: {{ task.creator or 'Unknown' }} |
-                    {% if task.completed %}
-                        Completed by: {{ task.completer or 'Unknown' }} on 
-                        {% if task.completion_date %}
-                            {{ task.completion_date.strftime('%d/%m/%Y, %I:%M %p') }}
-                        {% else %}
-                            Unknown date
-                        {% endif %}
-                    {% else %}
-                        Not yet completed
-                    {% endif %}
-                </div>
-            </div>
+            <span {% if task.completed %}class="text-decoration-line-through"{% endif %}>{{ task.text }}</span>
             <form method="POST" action="{{ url_for('mission.delete_task', task_id=task.id) }}">
                 <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
             </form>

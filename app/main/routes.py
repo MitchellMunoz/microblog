@@ -1,13 +1,13 @@
+from werkzeug.utils import secure_filename
+import os
 from datetime import datetime, timezone
-from flask import render_template, flash, redirect, url_for, request, g, \
-    current_app
+from flask import render_template, flash, redirect, url_for, request, g, current_app
 from flask_login import current_user, login_required
 from flask_babel import _, get_locale
 import sqlalchemy as sa
 from langdetect import detect, LangDetectException
 from app import db
-from app.main.forms import EditProfileForm, EmptyForm, PostForm, SearchForm, \
-    MessageForm
+from app.main.forms import EditProfileForm, EmptyForm, PostForm, SearchForm, MessageForm
 from app.models import User, Post, Message, Notification
 from app.translate import translate
 from app.main import bp
@@ -32,8 +32,7 @@ def index():
             language = detect(form.post.data)
         except LangDetectException:
             language = ''
-        post = Post(body=form.post.data, author=current_user,
-                    language=language)
+        post = Post(body=form.post.data, author=current_user, language=language)
         db.session.add(post)
         db.session.commit()
         flash(_('Your post is now live!'))
@@ -42,10 +41,9 @@ def index():
     posts = db.paginate(current_user.following_posts(), page=page,
                         per_page=current_app.config['POSTS_PER_PAGE'],
                         error_out=False)
-    next_url = url_for('main.index', page=posts.next_num) \
-        if posts.has_next else None
-    prev_url = url_for('main.index', page=posts.prev_num) \
-        if posts.has_prev else None
+    next_url = url_for('main.index', page=posts.next_num) if posts.has_next else None
+    prev_url = url_for('main.index', page=posts.prev_num) if posts.has_prev else None
+
     return render_template('index.html', title=_('Home'), form=form,
                            posts=posts.items, next_url=next_url,
                            prev_url=prev_url)
@@ -59,13 +57,27 @@ def explore():
     posts = db.paginate(query, page=page,
                         per_page=current_app.config['POSTS_PER_PAGE'],
                         error_out=False)
-    next_url = url_for('main.explore', page=posts.next_num) \
-        if posts.has_next else None
-    prev_url = url_for('main.explore', page=posts.prev_num) \
-        if posts.has_prev else None
+    next_url = url_for('main.explore', page=posts.next_num) if posts.has_next else None
+    prev_url = url_for('main.explore', page=posts.prev_num) if posts.has_prev else None
     return render_template('index.html', title=_('Explore'),
                            posts=posts.items, next_url=next_url,
                            prev_url=prev_url)
+
+
+@bp.route('/search')
+@login_required
+def search():
+    if not g.search_form.validate():
+        return redirect(url_for('main.explore'))
+    page = request.args.get('page', 1, type=int)
+    posts, total = Post.search(g.search_form.q.data, page,
+                               current_app.config['POSTS_PER_PAGE'])
+    next_url = url_for('main.search', q=g.search_form.q.data, page=page + 1) \
+        if total > page * current_app.config['POSTS_PER_PAGE'] else None
+    prev_url = url_for('main.search', q=g.search_form.q.data, page=page - 1) \
+        if page > 1 else None
+    return render_template('search.html', title=_('Search'), posts=posts,
+                           next_url=next_url, prev_url=prev_url)
 
 
 @bp.route('/user/<username>')
@@ -85,7 +97,6 @@ def user(username):
     return render_template('user.html', user=user, posts=posts.items,
                            next_url=next_url, prev_url=prev_url, form=form)
 
-
 @bp.route('/user/<username>/popup')
 @login_required
 def user_popup(username):
@@ -101,23 +112,27 @@ def edit_profile():
     if form.validate_on_submit():
         current_user.username = form.username.data
         current_user.about_me = form.about_me.data
+
+        if form.photo.data:
+            filename = secure_filename(form.photo.data.filename)
+            photo_path = os.path.join(current_app.root_path, 'static/profile_pics', filename)
+            form.photo.data.save(photo_path)
+            current_user.photo = filename
+
         db.session.commit()
         flash(_('Your changes have been saved.'))
         return redirect(url_for('main.edit_profile'))
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.about_me.data = current_user.about_me
-    return render_template('edit_profile.html', title=_('Edit Profile'),
-                           form=form)
-
+    return render_template('edit_profile.html', title=_('Edit Profile'), form=form)
 
 @bp.route('/follow/<username>', methods=['POST'])
 @login_required
 def follow(username):
     form = EmptyForm()
     if form.validate_on_submit():
-        user = db.session.scalar(
-            sa.select(User).where(User.username == username))
+        user = db.session.scalar(sa.select(User).where(User.username == username))
         if user is None:
             flash(_('User %(username)s not found.', username=username))
             return redirect(url_for('main.index'))
@@ -128,8 +143,7 @@ def follow(username):
         db.session.commit()
         flash(_('You are following %(username)s!', username=username))
         return redirect(url_for('main.user', username=username))
-    else:
-        return redirect(url_for('main.index'))
+    return redirect(url_for('main.index'))
 
 
 @bp.route('/unfollow/<username>', methods=['POST'])
@@ -137,8 +151,7 @@ def follow(username):
 def unfollow(username):
     form = EmptyForm()
     if form.validate_on_submit():
-        user = db.session.scalar(
-            sa.select(User).where(User.username == username))
+        user = db.session.scalar(sa.select(User).where(User.username == username))
         if user is None:
             flash(_('User %(username)s not found.', username=username))
             return redirect(url_for('main.index'))
@@ -149,8 +162,7 @@ def unfollow(username):
         db.session.commit()
         flash(_('You are not following %(username)s.', username=username))
         return redirect(url_for('main.user', username=username))
-    else:
-        return redirect(url_for('main.index'))
+    return redirect(url_for('main.index'))
 
 
 @bp.route('/translate', methods=['POST'])
@@ -162,20 +174,32 @@ def translate_text():
                               data['dest_language'])}
 
 
-@bp.route('/search')
+
+
+@bp.route('/export_posts')
 @login_required
-def search():
-    if not g.search_form.validate():
-        return redirect(url_for('main.explore'))
-    page = request.args.get('page', 1, type=int)
-    posts, total = Post.search(g.search_form.q.data, page,
-                               current_app.config['POSTS_PER_PAGE'])
-    next_url = url_for('main.search', q=g.search_form.q.data, page=page + 1) \
-        if total > page * current_app.config['POSTS_PER_PAGE'] else None
-    prev_url = url_for('main.search', q=g.search_form.q.data, page=page - 1) \
-        if page > 1 else None
-    return render_template('search.html', title=_('Search'), posts=posts,
-                           next_url=next_url, prev_url=prev_url)
+def export_posts():
+    if current_user.get_task_in_progress('export_posts'):
+        flash(_('An export task is currently in progress'))
+    else:
+        current_user.launch_task('export_posts', _('Exporting posts...'))
+        db.session.commit()
+    return redirect(url_for('main.user', username=current_user.username))
+
+
+
+
+@bp.route('/notifications')
+@login_required
+def notifications():
+    since = request.args.get('since', 0.0, type=float)
+    query = current_user.notifications.where(Notification.timestamp > since).order_by(Notification.timestamp.asc())
+    notifications = db.session.scalars(query)
+    return [{
+        'name': n.name,
+        'data': n.get_data(),
+        'timestamp': n.timestamp
+    } for n in notifications]
 
 
 @bp.route('/send_message/<recipient>', methods=['GET', 'POST'])
@@ -202,40 +226,21 @@ def messages():
     current_user.last_message_read_time = datetime.now(timezone.utc)
     current_user.add_notification('unread_message_count', 0)
     db.session.commit()
+
     page = request.args.get('page', 1, type=int)
-    query = current_user.messages_received.select().order_by(
-        Message.timestamp.desc())
-    messages = db.paginate(query, page=page,
-                           per_page=current_app.config['POSTS_PER_PAGE'],
-                           error_out=False)
+    query = sa.select(Message).where(Message.recipient_id == current_user.id).order_by(Message.timestamp.desc())
+
+    messages = db.paginate(
+        query,
+        page=page,
+        per_page=current_app.config['POSTS_PER_PAGE'],
+        error_out=False
+    )
+
     next_url = url_for('main.messages', page=messages.next_num) \
         if messages.has_next else None
     prev_url = url_for('main.messages', page=messages.prev_num) \
         if messages.has_prev else None
+
     return render_template('messages.html', messages=messages.items,
                            next_url=next_url, prev_url=prev_url)
-
-
-@bp.route('/export_posts')
-@login_required
-def export_posts():
-    if current_user.get_task_in_progress('export_posts'):
-        flash(_('An export task is currently in progress'))
-    else:
-        current_user.launch_task('export_posts', _('Exporting posts...'))
-        db.session.commit()
-    return redirect(url_for('main.user', username=current_user.username))
-
-
-@bp.route('/notifications')
-@login_required
-def notifications():
-    since = request.args.get('since', 0.0, type=float)
-    query = current_user.notifications.select().where(
-        Notification.timestamp > since).order_by(Notification.timestamp.asc())
-    notifications = db.session.scalars(query)
-    return [{
-        'name': n.name,
-        'data': n.get_data(),
-        'timestamp': n.timestamp
-    } for n in notifications]
